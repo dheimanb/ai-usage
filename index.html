@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AI 用量">
+<meta name="theme-color" content="#111418">
+<title>AI 用量</title>
+<style>
+  :root { --bg:#f4f5f7; --card:#fff; --fg:#14171a; --mut:#5f6670; --track:#e3e6ea;
+          --green:#1f9d55; --yellow:#d69e00; --red:#d64545; --stop:#8b1111; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#111418; --card:#1b1f24; --fg:#eef1f4; --mut:#9aa3ad; --track:#2c323a; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+         font:17px/1.4 -apple-system, BlinkMacSystemFont, "PingFang HK", "Noto Sans CJK TC", sans-serif;
+         padding:max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)); }
+  h1 { font-size:26px; margin:4px 0 12px; }
+  .banner { border-radius:12px; padding:10px 14px; margin-bottom:12px; font-size:15px; background:#fff3cd; color:#5c4400; }
+  .banner.err { background:#fde2e2; color:#7a1010; }
+  .card { background:var(--card); border-radius:18px; padding:16px; margin-bottom:14px;
+          box-shadow:0 1px 3px rgba(0,0,0,.08); border-left:8px solid var(--track); }
+  .card.green{border-left-color:var(--green)} .card.yellow{border-left-color:var(--yellow)}
+  .card.red{border-left-color:var(--red)} .card.stop{border-left-color:var(--stop)}
+  .top { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .name { font-size:20px; font-weight:700; }
+  .tags { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+  .tag { font-size:13px; padding:3px 9px; border-radius:999px; background:var(--track); color:var(--fg); white-space:nowrap; }
+  .tag.green{background:var(--green);color:#fff} .tag.yellow{background:var(--yellow);color:#1a1300}
+  .tag.red{background:var(--red);color:#fff} .tag.stop{background:var(--stop);color:#fff}
+  .tag.stale{background:#6b5b00;color:#fff}
+  .big { font-size:44px; font-weight:800; margin:6px 0 0; letter-spacing:-1px; }
+  .big small { font-size:18px; font-weight:600; color:var(--mut); margin-left:8px; letter-spacing:0; }
+  .bar { height:14px; background:var(--track); border-radius:999px; overflow:hidden; margin:10px 0 12px; position:relative; }
+  .bar i { display:block; height:100%; border-radius:999px; background:var(--mut); }
+  .green .bar i{background:var(--green)} .yellow .bar i{background:var(--yellow)}
+  .red .bar i{background:var(--red)} .stop .bar i{background:var(--stop)}
+  .bar .m { position:absolute; top:0; bottom:0; width:2px; background:rgba(0,0,0,.25); }
+  .row { display:flex; justify-content:space-between; gap:10px; font-size:15px; color:var(--mut); margin-top:4px; }
+  .row b { color:var(--fg); font-weight:600; text-align:right; }
+  .stopmsg { margin-top:10px; padding:8px 12px; border-radius:10px; background:var(--stop); color:#fff; font-weight:700; }
+  footer { color:var(--mut); font-size:13px; text-align:center; margin-top:8px; }
+  button { font:inherit; font-size:15px; border:0; border-radius:12px; padding:10px 16px; background:var(--track); color:var(--fg); width:100%; }
+</style>
+</head>
+<body>
+<h1>AI 用量</h1>
+<div id="banners"></div>
+<div id="cards"></div>
+<button onclick="load()">重新整理</button>
+<footer>70% 黃：慳住用 · 90% 紅：只做急嘢 · 剩 3%：停 · 舊過 24 個鐘標「舊數」</footer>
+<script src="view.js"></script>
+<script>
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  function card(v) {
+    const tags = [`<span class="tag ${v.level}">${esc(v.levelText)}</span>`];
+    if (v.stale) tags.push('<span class="tag stale">舊數</span>');
+    return `<div class="card ${v.level}">
+      <div class="top"><div class="name">${esc(v.name)}</div><div class="tags">${tags.join("")}</div></div>
+      <div class="big">${esc(v.usedText)}<small>${esc(v.leftText)}</small></div>
+      <div class="bar"><i style="width:${v.barPct}%"></i><span class="m" style="left:70%"></span><span class="m" style="left:90%"></span></div>
+      <div class="row"><span>Reset</span><b>${esc(v.reset)}${v.countdown ? "<br>" + esc(v.countdown) : ""}</b></div>
+      <div class="row"><span>更新</span><b>${esc(v.updated)}</b></div>
+      <div class="row"><span>來源</span><b>${esc(v.source)}</b></div>
+      ${v.level === "stop" ? '<div class="stopmsg">剩唔夠 3%：停手，報 heiman</div>' : ""}
+    </div>`;
+  }
+  async function load() {
+    const B = document.getElementById("banners"), C = document.getElementById("cards");
+    try {
+      const res = await fetch("usage.json?t=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const doc = await res.json();
+      const now = Date.now();
+      B.innerHTML = doc.demo ? '<div class="banner">示範數據（--fake），唔係真用量</div>' : "";
+      C.innerHTML = (doc.rows || []).map((r) => card(UsageView.viewRow(r, now))).join("");
+    } catch (e) {
+      B.innerHTML = `<div class="banner err">讀唔到 usage.json（${esc(e.message)}）。如果係直接開檔（file://），請用 python3 -m http.server 開。</div>`;
+    }
+  }
+  load();
+  setInterval(load, 5 * 60e3);
+</script>
+</body>
+</html>

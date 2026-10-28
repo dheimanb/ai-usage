@@ -1,0 +1,54 @@
+# Chrome login profile — NEVER commit (cookies / session)
+profile-grok/
+profile-*/
+.chrome*
+.chrome*/
+chrome*
+chrome-*/
+**/SingletonLock
+**/SingletonCookie
+**/SingletonSocket
+**/Cookies
+**/Cookies-journal
+**/Login Data
+**/Login Data-journal
+**/Web Data
+**/Web Data-journal
+**/History
+**/Network Persistent State
+**/TransportSecurity
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+.env
+.env.*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# Local runtime / locks / logs
+*.lock
+*.pid
+*.log
+nohup.out
+.tmp/
+tmp/
+.cache/
+
+# Secrets / tokens (belt and braces)
+*token*
+*secret*
+*credential*
+*.pem
+*.key

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "usage.schema.json",
+  "title": "AI usage snapshot",
+  "description": "Only percentages and timestamps. Never tokens, cookies, or page content.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["rows"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "demo": {"type": "boolean", "description": "true = rows were written by --fake; not real data. Absent when real."},
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["service", "used_pct", "reset_at", "updated_at", "source"],
+        "properties": {
+          "service": {"type": "string", "pattern": "^[a-z0-9-]{1,32}$", "description": "grok = shared weekly pool (Grok, Grok Bot, Cursor); muse = bibi's row"},
+          "name": {"type": "string", "maxLength": 40},
+          "used_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+          "reset_at": {"type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2}(\\.\\d+)?)?(Z|[+-]\\d{2}:\\d{2})$"},
+          "updated_at": {"type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2}(\\.\\d+)?)?(Z|[+-]\\d{2}:\\d{2})$"},
+          "source": {"enum": ["script", "ai-self"]}
+        }
+      }
+    }
+  }
+}
