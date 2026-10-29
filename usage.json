@@ -1,21 +1,21 @@
 {
-  "schema_version": 1,
   "rows": [
     {
-      "service": "grok",
       "name": "Grok 共用池",
-      "used_pct": 63.0,
       "reset_at": "2026-10-30T16:19:00+08:00",
+      "service": "grok",
+      "source": "script",
       "updated_at": "2026-10-29T10:43:01+08:00",
-      "source": "script"
+      "used_pct": 63.0
     },
     {
-      "service": "muse",
       "name": "Muse",
-      "used_pct": 57.0,
       "reset_at": "2026-10-30T08:57:00+08:00",
-      "updated_at": "2026-10-29T03:15:13+08:00",
-      "source": "ai-self"
+      "service": "muse",
+      "source": "script",
+      "updated_at": "2026-10-29T08:59:09+08:00",
+      "used_pct": 59
     }
-  ]
+  ],
+  "schema_version": 1
 }
