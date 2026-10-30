@@ -3,9 +3,9 @@
     {
       "service": "grok",
       "name": "Grok 共用池",
-      "used_pct": 88.0,
+      "used_pct": 92.0,
       "reset_at": "2026-10-30T16:19:00+08:00",
-      "updated_at": "2026-10-30T15:15:56+08:00",
+      "updated_at": "2026-10-30T16:04:49+08:00",
       "source": "script"
     },
     {
